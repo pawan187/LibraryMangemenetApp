@@ -7,19 +7,10 @@ conn = pyodbc.connect('Driver={SQL Server};'
                       "PWD=testiptdbo123;")
 
 cursor = conn.cursor()
-#cursor.execute('SELECT * FROM [testfoript].[Cure].[CureUser]')
 
-#for row in cursor:
-#    print(row)
 
 app = Flask(__name__)
-transaction = [
-    {
-        "id" : 1,
-        "Bookid":1,
-        "Userid":1,
-        "date":"xyz"
-}]
+
 @app.route('/')
 def index():
     return "flask homepage"
@@ -106,7 +97,6 @@ def EditMemebers(id):
        data = jsonify("deleted!")
        print(count)
        return data
- 
 @app.route('/transaction', methods=['GET','POST'])
 def AddTransaction():
    if request.method == 'GET':
@@ -127,16 +117,15 @@ def AddTransaction():
        return data
    elif request.method == 'POST':
        data = request.json
-       row = cursor.execute("SET NOCOUNT ON; declare @rc int; exec @rc = [dbo].[LibraryInsertTransaction] Bid= ?, Mid= ?,TDate=  ?, Tstatus = ? select @rc as rc", data["Bid"], data["Mid"] , str(data["TDate"]), data["Tstatus"])
-       row.commit()
+       cursor.execute(" DECLARE @return_value int EXEC	@return_value = [dbo].[LibraryInsertTransaction] @Mid = ?, @Bid = ?, @TDate = ?, @Tstatus = ? SELECT	'Return Value' = @return_value ", data["Mid"] , data["Bid"], str(data["TDate"]), data["Tstatus"])
+       cursor.commit()
        transaction.append(data)
-       print(row)
        return data
 @app.route('/transaction/<id>', methods=['PUT','DELETE'])
 def EditTransaction(id):
    if request.method == 'PUT':
        data = request.json
-       row = cursor.execute("update [testfoript].[dbo].[LibraryTransactions] set Bid = ? , Mid = ? ,TDate = ? , Tstatus = ? where id = ?" , data["Bid"], data["Mid"] , str(data["TDate"]), data["Tstatus"], id)
+       row = cursor.execute("SET NOCOUNT ON; declare @rc int; exec @rc = [dbo].[LibraryReturnTransaction] Bid= ?, Mid= ?,amount = ? select @rc as rc" , data["Bid"], data["Mid"] ,data["amount"])
        row.commit()
        data = jsonify(row)
        print(data)
